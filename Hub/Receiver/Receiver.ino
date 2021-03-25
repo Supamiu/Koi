@@ -5,7 +5,7 @@
 
 // Prepare radio
 RF24 NRF24L01 (7, 8);
-const byte address[6] = "000001";
+const byte address[6] = "00001";
 
 // Prepare display
 #define TM1637_CLK_PIN   2
@@ -28,15 +28,23 @@ uint8_t digits[] = {
 };
 
 void setup() {
+  Serial.begin(9600);
   NRF24L01.begin();
-  NRF24L01.openReadingPipe(0, address);
-  NRF24L01.setPALevel(RF24_PA_MAX);
-  NRF24L01.setDataRate(RF24_250KBPS);
+  NRF24L01.openReadingPipe(1, address);
+  NRF24L01.setAutoAck(1);
   NRF24L01.startListening();
   pinMode(5, OUTPUT);
+  
+  if (NRF24L01.isChipConnected()) {
+    Serial.println("NRF24L01 connected");
+  } else {
+    Serial.println("NFR24L01 MISSING ! NOTHING WILL BE EMITTED !");
+    displayNumber(4444);
+    delay(30000);
+  }
 
   display.begin();
-  display.setBrightness(5);
+  display.setBrightness(2);
   beep(8888);
   beep(8888);
   beep(8888);
@@ -46,9 +54,7 @@ void loop() {
   if (NRF24L01.available()) {
     uint8_t detectorNumber = 0;
     NRF24L01.read(&detectorNumber, sizeof(detectorNumber));
-    if (detectorNumber > 0) {
-      beep(detectorNumber);
-    }
+    beep(detectorNumber);
   }
 }
 
